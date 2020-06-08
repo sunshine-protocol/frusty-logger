@@ -1,7 +1,7 @@
 <h1 align="center">Frusty Logger</h1>
 <div align="center">
   <strong>
-    A Bridge between Rust <small>log</small> crate and Flutter <small>debugLog</small> function
+    A Bridge between Rust <small>log</small> crate and Flutter <small>debugPrint</small> function
   </strong>
 
 <small>I know I'm terrible at naming packages 😅</small>

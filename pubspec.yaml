@@ -1,5 +1,5 @@
 name: frusty_logger
-description: A flutter plugin for logging messages from Rust side
+description: A Bridge between Rust log crate and Flutter
 version: 0.1.0
 author: Sunshine Foundation Developers
 homepage:

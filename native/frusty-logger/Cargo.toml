@@ -3,6 +3,7 @@ name = "frusty-logger"
 version = "0.1.0"
 authors = ["Sunshine Foundation Developers", "Shady Khalifa <shekohex@gmail.com>"]
 edition = "2018"
+description = "A Bridge between Rust log crate and Flutter"
 
 [dependencies]
 log = "0.4"
