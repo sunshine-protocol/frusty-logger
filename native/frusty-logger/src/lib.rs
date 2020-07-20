@@ -10,20 +10,17 @@
 
 //! A Rust Logger crate that logs messages using the Dart `println` function
 
-use std::{ffi::CString, os::raw};
+use log::{Log, Metadata, Record};
 
-use log::{LevelFilter, Log, Metadata, Record};
-
-type DartPrintlnFn = unsafe extern "C" fn(msg: *mut raw::c_char);
-
-#[derive(Clone, Debug)]
-struct FrustyLogger {
-    println: Option<DartPrintlnFn>,
+pub use {allo_isolate, allo_isolate::Isolate, log};
+#[derive(Clone, Debug, Copy)]
+pub struct FrustyLogger {
+    pub isolate: Option<Isolate>,
 }
 
 impl FrustyLogger {
-    pub(crate) fn is_initialized(&self) -> bool {
-        self.println.is_some()
+    pub fn is_initialized(&self) -> bool {
+        self.isolate.is_some()
     }
 }
 
@@ -33,44 +30,53 @@ impl Log for FrustyLogger {
     }
     fn log(&self, record: &Record<'_>) {
         let msg = format!("{}:{} {}", record.level(), record.target(), record.args());
-        let msg = CString::new(msg).expect("bad string supplied!");
-        if let Some(println) = self.println {
-            unsafe {
-                println(msg.into_raw());
-            }
+        if let Some(isolate) = self.isolate {
+            isolate.post(msg);
         }
     }
     fn flush(&self) {}
 }
 
-/// A small hack to tell cargo to link this crate with the yours so we could find symbols on runtime.
-#[inline(never)]
-pub const fn link_me_please() {}
+#[macro_export]
+macro_rules! include_ffi {
+    () => {
+        $crate::include_ffi!(with_filter: $crate::log::LevelFilter::Trace);
+    };
+    (with_filter: $filter: expr) => {
+        /// A global Refrence to the Logger Impl
+        static mut FRUSTY_LOGGER: $crate::FrustyLogger = $crate::FrustyLogger { isolate: None };
 
-/// A global Refrence to the Logger Impl
-static mut LOGGER: FrustyLogger = FrustyLogger { println: None };
+        /// init the logger and return `0` if everything goes well, `1` in case it is already initialized.
+        #[no_mangle]
+        pub extern "C" fn frusty_logger_init(
+            port: i64,
+            post_c_object: $crate::allo_isolate::ffi::DartPostCObjectFnType,
+        ) -> i32 {
+            let logger = unsafe { &mut FRUSTY_LOGGER };
+            logger.isolate = Some($crate::allo_isolate::Isolate::new(port));
+            let result = $crate::log::set_logger(unsafe { &FRUSTY_LOGGER })
+                .map(|_| $crate::log::set_max_level($filter));
+            match result {
+                Ok(_) => {
+                    unsafe {
+                        $crate::allo_isolate::store_dart_post_cobject(post_c_object);
+                    };
+                    0
+                }
+                Err(_) => 1,
+            }
+        }
 
-/// init the logger and return `0` if everything goes well, `1` in case it is already initialized.
-#[no_mangle]
-pub extern "C" fn frusty_logger_init(println: DartPrintlnFn) -> i32 {
-    let logger = unsafe { &mut LOGGER };
-    logger.println = Some(println);
-    let result =
-        log::set_logger(unsafe { &LOGGER }).map(|_| log::set_max_level(LevelFilter::Trace));
-    match result {
-        Ok(_) => 0,
-        Err(_) => 1,
-    }
-}
-
-/// Check if the Logger is already initialized to prevent any errors of calling init again.
-/// return 1 if initialized before, 0 otherwise.
-#[no_mangle]
-pub extern "C" fn frusty_logger_is_initialized() -> i32 {
-    let logger = unsafe { &mut LOGGER };
-    if logger.is_initialized() {
-        1
-    } else {
-        0
-    }
+        /// Check if the Logger is already initialized to prevent any errors of calling init again.
+        /// return 1 if initialized before, 0 otherwise.
+        #[no_mangle]
+        pub extern "C" fn frusty_logger_is_initialized() -> i32 {
+            let logger = unsafe { &mut FRUSTY_LOGGER };
+            if logger.is_initialized() {
+                1
+            } else {
+                0
+            }
+        }
+    };
 }

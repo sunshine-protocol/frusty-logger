@@ -1,7 +1,4 @@
-#[no_mangle]
-pub extern "C" fn nop() {
-    frusty_logger::link_me_please();
-}
+frusty_logger::include_ffi!();
 
 #[no_mangle]
 pub extern "C" fn rand_log() {

@@ -24,13 +24,12 @@ log = "0.4"
 frusty-logger = "0.1.0"
 ```
 
-that's it, yeah really you don't have to do anything, but .. Cargo has another opinion, I guess not Cargo, it is `rustc` as it will remove any unused dependencies. so to get around this, just referance `frusty-logger` somewhere, for example in our demo, we have a `nop` function that calls `frusty_logger::link_me_please()` yup, you read it right I called it `link_me_please()` :D
+and import it into your project like so
 
 ```rust
-#[no_mangle]
-pub extern "C" fn nop() {
-    frusty_logger::link_me_please();
-}
+
+frusty_logger::include_ffi!();
+
 ```
 
 now you ready to go, just use the `log` crate as you would.

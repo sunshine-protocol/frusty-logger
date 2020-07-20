@@ -6,4 +6,5 @@ edition = "2018"
 description = "A Bridge between Rust log crate and Flutter"
 
 [dependencies]
-log = "0.4"
+log = "^0.4"
+allo-isolate = "^0.1"

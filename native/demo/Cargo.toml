@@ -9,8 +9,6 @@ crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
 log = "0.4"
-fastrand = "1.1"
+fastrand = "^1"
 frusty-logger = { path = "../frusty-logger" }
 
-[build-dependencies]
-cbindgen = "0.14"

@@ -1,19 +1,18 @@
+// ignore_for_file: unused_import, camel_case_types, non_constant_identifier_names
 import 'dart:ffi';
-import 'package:ffi/ffi.dart';
-import 'package:flutter/foundation.dart';
+import 'dart:io';
+import 'package:ffi/ffi.dart' as ffi;
 
-void println(Pointer<Utf8> msg) {
-  debugPrint(Utf8.fromUtf8(msg));
-}
-
-typedef frustyLoggerInitRust = Uint32 Function(
-  Pointer<NativeFunction<Void Function(Pointer<Utf8>)>>,
+typedef frusty_logger_init_C = Int32 Function(
+  Int64 port,
+  Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      post_c_object,
+);
+typedef frusty_logger_init_Dart = int Function(
+  int port,
+  Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
+      post_c_object,
 );
 
-typedef frustyLoggerInitDart = int Function(
-  Pointer<NativeFunction<Void Function(Pointer<Utf8>)>>,
-);
-
-typedef frustyLoggerIsInitializedRust = Uint32 Function();
-
-typedef frustyLoggerIsInitializedDart = int Function();
+typedef frusty_logger_is_initialized_C = Int32 Function();
+typedef frusty_logger_is_initialized_Dart = int Function();

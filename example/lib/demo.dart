@@ -5,6 +5,7 @@ DynamicLibrary load() {
   if (Platform.isAndroid) {
     return DynamicLibrary.open('libdemo.so');
   } else {
+    // it should work on iOS too, but not tested yet
     throw NotSupportedPlatform();
   }
 }
