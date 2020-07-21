@@ -122,12 +122,14 @@ macro_rules! include_ffi {
     };
     (with_config: $config: expr) => {
         /// A global Refrence to the Logger Impl
+        /// cbindgen:ignore
         static mut FRUSTY_LOGGER: $crate::FrustyLogger = $crate::FrustyLogger {
             isolate: None,
             config: $crate::Config::empty(),
         };
 
         /// init the logger and return `0` if everything goes well, `1` in case it is already initialized.
+        /// cbindgen:ignore
         #[no_mangle]
         pub extern "C" fn frusty_logger_init(
             port: i64,
