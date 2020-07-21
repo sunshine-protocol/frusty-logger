@@ -10,12 +10,53 @@
 
 //! A Rust Logger crate that logs messages using the Dart `println` function
 
-use log::{Log, Metadata, Record};
+use log::{Level, Log, Metadata, Record};
 
-pub use {allo_isolate, allo_isolate::Isolate, log};
-#[derive(Clone, Debug, Copy)]
+pub use {
+    allo_isolate,
+    env_logger::filter::{Builder as FilterBuilder, Filter},
+    log,
+};
+
+/// Filter for android logger.
+#[derive(Debug)]
+pub struct Config {
+    log_level: Option<Level>,
+    filter: Option<env_logger::filter::Filter>,
+}
+
+impl Config {
+    pub const fn empty() -> Self {
+        Self {
+            log_level: None,
+            filter: None,
+        }
+    }
+
+    pub const fn new(level: Level, filter: env_logger::filter::Filter) -> Self {
+        Self {
+            log_level: Some(level),
+            filter: Some(filter),
+        }
+    }
+
+    pub const fn log_level(&self) -> Option<Level> {
+        self.log_level
+    }
+
+    fn filter_matches(&self, record: &Record<'_>) -> bool {
+        if let Some(ref filter) = self.filter {
+            filter.matches(&record)
+        } else {
+            true
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct FrustyLogger {
-    pub isolate: Option<Isolate>,
+    pub isolate: Option<allo_isolate::Isolate>,
+    pub config: Config,
 }
 
 impl FrustyLogger {
@@ -29,6 +70,9 @@ impl Log for FrustyLogger {
         true
     }
     fn log(&self, record: &Record<'_>) {
+        if !self.config.filter_matches(record) {
+            return;
+        }
         let msg = format!("{}:{} {}", record.level(), record.target(), record.args());
         if let Some(isolate) = self.isolate {
             isolate.post(msg);
@@ -40,11 +84,14 @@ impl Log for FrustyLogger {
 #[macro_export]
 macro_rules! include_ffi {
     () => {
-        $crate::include_ffi!(with_filter: $crate::log::LevelFilter::Trace);
+        $crate::include_ffi!(with_config: $crate::Config::empty());
     };
-    (with_filter: $filter: expr) => {
+    (with_config: $config: expr) => {
         /// A global Refrence to the Logger Impl
-        static mut FRUSTY_LOGGER: $crate::FrustyLogger = $crate::FrustyLogger { isolate: None };
+        static mut FRUSTY_LOGGER: $crate::FrustyLogger = $crate::FrustyLogger {
+            isolate: None,
+            config: $config,
+        };
 
         /// init the logger and return `0` if everything goes well, `1` in case it is already initialized.
         #[no_mangle]
@@ -54,10 +101,12 @@ macro_rules! include_ffi {
         ) -> i32 {
             let logger = unsafe { &mut FRUSTY_LOGGER };
             logger.isolate = Some($crate::allo_isolate::Isolate::new(port));
-            let result = $crate::log::set_logger(unsafe { &FRUSTY_LOGGER })
-                .map(|_| $crate::log::set_max_level($filter));
+            let result = $crate::log::set_logger(unsafe { &FRUSTY_LOGGER });
             match result {
                 Ok(_) => {
+                    if let Some(level) = logger.config.log_level() {
+                        log::set_max_level(level.to_level_filter());
+                    }
                     unsafe {
                         $crate::allo_isolate::store_dart_post_cobject(post_c_object);
                     };

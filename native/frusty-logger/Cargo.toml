@@ -8,3 +8,4 @@ description = "A Bridge between Rust log crate and Flutter"
 [dependencies]
 log = "^0.4"
 allo-isolate = "^0.1"
+env_logger = "^0.7"
