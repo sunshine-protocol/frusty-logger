@@ -90,7 +90,7 @@ macro_rules! include_ffi {
         /// A global Refrence to the Logger Impl
         static mut FRUSTY_LOGGER: $crate::FrustyLogger = $crate::FrustyLogger {
             isolate: None,
-            config: $config,
+            config: $crate::Config::empty(),
         };
 
         /// init the logger and return `0` if everything goes well, `1` in case it is already initialized.
@@ -101,6 +101,7 @@ macro_rules! include_ffi {
         ) -> i32 {
             let logger = unsafe { &mut FRUSTY_LOGGER };
             logger.isolate = Some($crate::allo_isolate::Isolate::new(port));
+            logger.config = $config;
             let result = $crate::log::set_logger(unsafe { &FRUSTY_LOGGER });
             match result {
                 Ok(_) => {
