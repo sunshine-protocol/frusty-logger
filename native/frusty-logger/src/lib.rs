@@ -11,6 +11,7 @@
 //! A Rust Logger crate that logs messages using the Dart `println` function
 
 use log::{Level, Log, Metadata, Record};
+use yansi::Paint;
 
 pub use {
     allo_isolate,
@@ -28,7 +29,7 @@ pub struct Config {
 impl Config {
     pub const fn empty() -> Self {
         Self {
-            log_level: None,
+            log_level: Some(Level::Trace),
             filter: None,
         }
     }
@@ -55,11 +56,17 @@ impl Config {
 
 #[derive(Debug)]
 pub struct FrustyLogger {
-    pub isolate: Option<allo_isolate::Isolate>,
     pub config: Config,
+    pub isolate: Option<allo_isolate::Isolate>,
 }
 
 impl FrustyLogger {
+    pub const fn new() -> Self {
+        Self {
+            config: Config::empty(),
+            isolate: None,
+        }
+    }
     pub fn is_initialized(&self) -> bool {
         self.isolate.is_some()
     }
@@ -73,12 +80,39 @@ impl Log for FrustyLogger {
         if !self.config.filter_matches(record) {
             return;
         }
-        let msg = format!("{}:{} {}", record.level(), record.target(), record.args());
+
+        let msg = format!(
+            "{} {} {} > {}",
+            emoji_level(record.level()),
+            colored_level(record.level()),
+            Paint::new(record.target()).bold(),
+            record.args()
+        );
         if let Some(isolate) = self.isolate {
             isolate.post(msg);
         }
     }
     fn flush(&self) {}
+}
+
+fn emoji_level(level: Level) -> Paint<&'static str> {
+    match level {
+        Level::Trace => Paint::magenta("🤓").bold(),
+        Level::Debug => Paint::blue("🐞").bold(),
+        Level::Info => Paint::green("ℹ").bold(),
+        Level::Warn => Paint::yellow("⚠").bold(),
+        Level::Error => Paint::red("❌").bold(),
+    }
+}
+
+fn colored_level(level: Level) -> Paint<&'static str> {
+    match level {
+        Level::Trace => Paint::magenta("TRACE").dimmed(),
+        Level::Debug => Paint::blue("DEBUG"),
+        Level::Info => Paint::green("INFO"),
+        Level::Warn => Paint::yellow("WARN").underline(),
+        Level::Error => Paint::red("ERROR").underline().bold(),
+    }
 }
 
 #[macro_export]

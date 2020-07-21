@@ -29,7 +29,7 @@ class FrustyLogger {
     if (res != 0) {
       throw "Error While Initializing the logger, did you called `FrustyLogger.init()` before?";
     }
-    _streamController.stream.listen(debugPrint);
+    _streamController.stream.listen(print);
   }
 
   /// Check if the logger is initialized correctly

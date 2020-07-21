@@ -78,8 +78,8 @@ you should see some loggs on the `Debug Console` when you press the `FAB`.
 
 Here the Things that I want to do before making this ready
 
-- [ ] Test it on iOS (it should just work)
-- [ ] Add more Options and customization for the logger
+- [x] Test it on iOS (it should just work)
+- [x] Add more Options and customization for the logger
 - [ ] Publish on crates.io
-- [ ] Add Colors & Emoji
+- [x] Add Colors & Emoji
 - [ ] Publish on pub.dev
