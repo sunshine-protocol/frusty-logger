@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:ffi';
 import 'dart:isolate';
 
-import 'package:flutter/foundation.dart';
-
 import 'ffi.dart';
 
 class FrustyLogger {
@@ -29,7 +27,12 @@ class FrustyLogger {
     if (res != 0) {
       throw "Error While Initializing the logger, did you called `FrustyLogger.init()` before?";
     }
-    _streamController.stream.listen(print);
+  }
+
+  /// add a listener to the log stream
+  /// Returns a [StreamSubscription] which handles events from this stream
+  static StreamSubscription<String> addListener(void Function(String) action) {
+    return _streamController.stream.listen(action);
   }
 
   /// Check if the logger is initialized correctly

@@ -49,6 +49,7 @@ Then, it is easy to setup, just call
 
 ```dart
 FrustyLogger.init(dynamicLibrary);
+FrustyLogger.addListener(print);
 ```
 
 usually you will call `init` directly after loading your `dynamicLibrary` and passing a referance to `FrustyLogger` to let it setup the logger and hooking into rust functions.
