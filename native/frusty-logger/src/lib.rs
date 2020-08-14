@@ -67,6 +67,7 @@ impl FrustyLogger {
             isolate: None,
         }
     }
+    #[allow(clippy::missing_const_for_fn)]
     pub fn is_initialized(&self) -> bool {
         self.isolate.is_some()
     }

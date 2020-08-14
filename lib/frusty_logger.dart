@@ -7,7 +7,8 @@ import 'ffi.dart';
 class FrustyLogger {
   static DynamicLibrary _dl;
   static final RawReceivePort _responsePort = RawReceivePort();
-  static final StreamController<String> _streamController = StreamController();
+  static final StreamController<String> _streamController =
+      StreamController.broadcast();
 
   /// Init the Logger and Setup the Hooking into Rust Code.
   static void init(DynamicLibrary dl) {
